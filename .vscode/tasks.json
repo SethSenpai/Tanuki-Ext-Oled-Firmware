@@ -1,0 +1,21 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+      {
+        "label": "Copy Files to USB",
+        "type": "shell",
+        "command": "rsync",
+        "args": [
+          "-r",
+          "-u",
+          "-v",
+          "--delete",
+          "--exclude", ".vscode", ".git", "readme.md",
+          "${workspaceFolder}/",
+          "/media/seth/CIRCUITPY/"
+        ],
+        "problemMatcher": []
+      }
+    ]
+  }
+  
