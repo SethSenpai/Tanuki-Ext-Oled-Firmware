@@ -42,7 +42,7 @@ def renderUI():
     global locks
     screen = displayio.Group()
     uiGroup = displayio.Group()
-    border = Rect(0,0,32,128, outline=0xffffff)
+    border = Rect(0,2,32,128, outline=0xffffff)
     uiGroup.append(border)
 
     screen.append(uiGroup)

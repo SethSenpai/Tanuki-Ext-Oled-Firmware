@@ -10,7 +10,7 @@
           "-u",
           "-v",
           "--delete",
-          "--exclude", ".vscode", ".git", "readme.md",
+          "--exclude", ".vscode", "--exclude", ".git", "--exclude", "readme.md",
           "${workspaceFolder}/",
           "/media/seth/CIRCUITPY/"
         ],
