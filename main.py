@@ -1,67 +1,66 @@
 print("Starting")
 import board
 
-import displayio
-import adafruit_displayio_ssd1306
-import busio
-from adafruit_display_text import label
-from adafruit_display_shapes.rect import Rect
-import terminalio
-
 from kmk.kmk_keyboard import KMKKeyboard
-from kmk.keys import KC
+from kmk.keys import KC, make_key
 from kmk.scanners import DiodeOrientation
-from kmk.modules.layers import Layers
+from kmk.modules.layers import Layers as _Layers
 from kmk.extensions.media_keys import MediaKeys
 from kmk.extensions.lock_status import LockStatus
+from kmk.modules.combos import Combos, Chord
+
+from tanuki_ui import TanukiUI
 
 keyboard = KMKKeyboard()
+keyboard.extensions.append(MediaKeys())
 
 keyboard.col_pins = (board.GP11,board.GP15,board.GP20,board.GP25,board.GP10,board.GP14,board.GP19,board.GP24,board.GP9,board.GP13,board.GP18,board.GP23)   
 keyboard.row_pins = (board.GP22,board.GP17,board.GP12,board.GP8) 
 keyboard.diode_orientation = DiodeOrientation.COL2ROW
 
-keyboard.modules.append(Layers())
-keyboard.extensions.append(MediaKeys())
+#Class extensions
+class LayersObj(_Layers):
+    last_layer_index = 0
+
+    def after_hid_send(self, keyboard):
+        if keyboard.active_layers[0] != self.last_layer_index:
+            ui.layerIndex = keyboard.active_layers[0]
+            self.last_layer_index = keyboard.active_layers[0]
+            ui.renderUI(locks)
+
+class LockStatusObj(LockStatus):
+    def after_hid_send(self, sandbox):
+        super().after_hid_send(sandbox)
+        if self.report_updated:
+            ui.renderUI(locks)                    
+
+locks = LockStatusObj()
+keyboard.extensions.append(locks)
+keyboard.modules.append(LayersObj())
 
 KEY_LOWER   = KC.LT(1,KC.SPC, prefer_hold=False, tap_interrupted=False, tap_time=120)
 KEY_HIGHER  = KC.LT(2,KC.SPC, prefer_hold=False, tap_interrupted=False, tap_time=120)
 
-class LEDLockStatus(LockStatus):
-    def after_hid_send(self, sandbox):
-        super().after_hid_send(sandbox)  # Critically important. Do not forget
-        if self.report_updated:
-            renderUI()
+ui = TanukiUI(board.GP1,board.GP0)
+ui.renderUI(locks)
 
-locks = LEDLockStatus()
-keyboard.extensions.append(locks)
-isSpaceLocked = False
+# def setSpaceLock():
+#     if ui.isSpaceLocked:
+#         ui.isSpaceLocked = False
+#     else:
+#         ui.isSpaceLocked = True
 
-def renderUI():
-    global display
-    global locks
-    screen = displayio.Group()
-    uiGroup = displayio.Group()
-    border = Rect(0,2,32,128, outline=0xffffff)
-    uiGroup.append(border)
+# make_key(
+#     names=('SPCLCK',),
+#     on_press=setSpaceLock(),
+# )
 
-    screen.append(uiGroup)
+# combo = Combos()
+# keyboard.modules.append(combo)
 
-    if locks.get_caps_lock():
-        ta = label.Label(terminalio.FONT, text = "CL", color = 0x000000, x = 4, y = 8,background_color=0xffffff, padding_left = 2, padding_right=1)
-        screen.append(ta)
-    else:
-        ta = label.Label(terminalio.FONT, text = "", color = 0xffffff, x = 3, y = 8)
-        screen.append(ta)
-        
-    display.show(screen)
-
-displayio.release_displays() #needed because the otherwise its claimed for debugging
-i2c = busio.I2C(board.GP1,board.GP0)
-display_bus = displayio.I2CDisplay(i2c,device_address=0x3c)
-display = adafruit_displayio_ssd1306.SSD1306(display_bus, width=32,height=128, rotation=90) #this configuration only works when pulling from the latest adafruit master
-
-renderUI()
+# combo.combos = [
+#     Chord((KC.LCTL,KC.LALT),KC.SPCLCK),
+# ]
 
 keyboard.keymap = [
     [   #Main
