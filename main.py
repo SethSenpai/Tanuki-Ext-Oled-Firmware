@@ -19,48 +19,55 @@ keyboard.row_pins = (board.GP22,board.GP17,board.GP12,board.GP8)
 keyboard.diode_orientation = DiodeOrientation.COL2ROW
 
 #Class extensions
-class LayersObj(_Layers):
+class LayersObj(_Layers): #deals with interactions based on layer switching
     last_layer_index = 0
 
     def after_hid_send(self, keyboard):
         if keyboard.active_layers[0] != self.last_layer_index:
             ui.layerIndex = keyboard.active_layers[0]
             self.last_layer_index = keyboard.active_layers[0]
-            ui.renderUI(locks)
+            ui.updateUI(locks)
 
-class LockStatusObj(LockStatus):
+class LockStatusObj(LockStatus): #deals with interaction based on lock key status
     def after_hid_send(self, sandbox):
         super().after_hid_send(sandbox)
         if self.report_updated:
-            ui.renderUI(locks)                    
+            ui.updateUI(locks)                    
 
 locks = LockStatusObj()
 keyboard.extensions.append(locks)
 keyboard.modules.append(LayersObj())
 
+#initialize UI for OLED
+ui = TanukiUI(board.GP1,board.GP0)
+ui.updateUI(locks)
+
+#custom keys for tap or holding spacebars
 KEY_LOWER   = KC.LT(1,KC.SPC, prefer_hold=False, tap_interrupted=False, tap_time=120)
 KEY_HIGHER  = KC.LT(2,KC.SPC, prefer_hold=False, tap_interrupted=False, tap_time=120)
 
-ui = TanukiUI(board.GP1,board.GP0)
-ui.renderUI(locks)
+#combo module allows us to tap both spacebars to switch layers
+combo = Combos()
+keyboard.modules.append(combo)
 
-# def setSpaceLock():
-#     if ui.isSpaceLocked:
-#         ui.isSpaceLocked = False
-#     else:
-#         ui.isSpaceLocked = True
+def setSpaceLock():
+    if ui.isSpaceLocked:
+        ui.isSpaceLocked = False
+        keyboard.active_layers[0] = 0 #switch layer to base
+    else:
+        ui.isSpaceLocked = True
+        keyboard.active_layers[0] = 3 #switch layer to space locked
+    ui.updateUI(locks)
 
-# make_key(
-#     names=('SPCLCK',),
-#     on_press=setSpaceLock(),
-# )
+make_key( #create a special key that triggers a function
+    names=('SPLK',),
+    on_press=lambda *args: setSpaceLock(),
+)
 
-# combo = Combos()
-# keyboard.modules.append(combo)
-
-# combo.combos = [
-#     Chord((KC.LCTL,KC.LALT),KC.SPCLCK),
-# ]
+#40 and 42 are spacebars int coords in matrix
+combo.combos = [
+    Chord((40,42),KC.SPLK, match_coord=True),
+]
 
 keyboard.keymap = [
     [   #Main

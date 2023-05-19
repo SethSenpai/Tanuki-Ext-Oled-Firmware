@@ -131,6 +131,7 @@ class KMKKeyboard:
 
     def _on_matrix_changed(self, kevent: KeyEvent) -> None:
         int_coord = kevent.key_number
+        #print(int_coord) #DEBUG: used to find int coord
         is_pressed = kevent.pressed
 
         key = None
