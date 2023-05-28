@@ -9,7 +9,7 @@ import terminalio
 
 class TanukiUI:
     isSpaceLocked = False
-    lstrings = ["BASE","NBRS","SMBL","BASE"] 
+    lstrings = ["BASE","SMBL","NBRS","BASE"] 
     layerIndex = 0
 
     screen = displayio.Group()
