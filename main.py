@@ -43,8 +43,8 @@ ui = TanukiUI(board.GP1,board.GP0)
 ui.updateUI(locks)
 
 #custom keys for tap or holding spacebars
-KEY_LOWER   = KC.LT(1,KC.SPC, prefer_hold=False, tap_interrupted=False, tap_time=120)
-KEY_HIGHER  = KC.LT(2,KC.SPC, prefer_hold=False, tap_interrupted=False, tap_time=120)
+KEY_LOWER   = KC.LT(2,KC.SPC, prefer_hold=False, tap_interrupted=False, tap_time=120)
+KEY_HIGHER  = KC.LT(1,KC.SPC, prefer_hold=False, tap_interrupted=False, tap_time=120)
 
 #combo module allows us to tap both spacebars to switch layers
 combo = Combos()
