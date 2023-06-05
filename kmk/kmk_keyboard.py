@@ -144,6 +144,7 @@ class KMKKeyboard:
 
         if key is None:
             key = self._find_key_in_map(int_coord)
+            #print(key.code)
 
         if key is None:
             return
