@@ -18,15 +18,20 @@ class KeyTracker(KMKKeyboard): #hijack the keyboards process key function to all
         if(is_pressed):
             #print(key.code)
             moduleWPM.nextKey(key.code)
+    
+    def before_matrix_scan(self):
+        super().before_matrix_scan()
+        moduleWPM.checkTimeout()
 
 keyboard = KeyTracker()
 keyboard.extensions.append(MediaKeys())
-
 keyboard.col_pins = (board.GP11,board.GP15,board.GP20,board.GP25,board.GP10,board.GP14,board.GP19,board.GP24,board.GP9,board.GP13,board.GP18,board.GP23)   
 keyboard.row_pins = (board.GP22,board.GP17,board.GP12,board.GP8) 
 keyboard.diode_orientation = DiodeOrientation.COL2ROW
 
 cardIndex = 1
+
+moduleWPM = WPM(5,5)
 
 #Class extensions
 class LayersObj(_Layers): #deals with interactions based on layer switching
@@ -53,8 +58,6 @@ keyboard.modules.append(LayersObj())
 #initialize UI for OLED
 ui = TanukiUI(board.GP1,board.GP0)
 ui.updateUI(locks)
-
-moduleWPM = WPM()
 
 #custom keys for tap or holding spacebars
 KEY_LOWER   = KC.LT(2,KC.SPC, prefer_hold=False, tap_interrupted=False, tap_time=120)
