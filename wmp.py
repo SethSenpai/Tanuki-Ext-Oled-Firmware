@@ -3,7 +3,7 @@ from kmk.kmk_keyboard import KMKKeyboard
 from kmk.modules import Module
 
 class WPM(Module):
-    def __init__(self, timeout = 10, averages = 10):
+    def __init__(self, ui, timeout = 10, averages = 10):
         self.wordCounter = 0
         self.lastCharacter = 0
         self.wpm = 0
@@ -12,6 +12,8 @@ class WPM(Module):
         self.wpmAverage = [0]
         self.timeOut = timeout * 1000 # from seconds to ms
         self.averaging = averages
+        self.checkTime = 0
+        self.ui = ui
 
         self.wordEndingCharacterList = [ #list of scan numbers includes number, alpha's and symbols thanks chatgpt
             0x04, 0x05, 0x06, 0x07, 0x08, 
@@ -37,39 +39,33 @@ class WPM(Module):
             self.wordCounter = self.wordCounter + 1
             self.lastCharacter = character
             self.spaceTime = ticks_ms()
-            self.calculateWPM()
+            #self.calculateWPM()
             self.startTime = 0
             #print(self.wordCounter)
-            avg = self.getWPM()
-            print(avg)
+            #avg = self.getWPM()
+            #print(avg)
         else:
-
             self.lastCharacter = character
             ct = ticks_ms()
             if ct - self.startTime > self.timeOut:
                 #timeout reset counter
                 self.startTime = ct
 
-    def calculateWPM(self):
-        deltaT = self.spaceTime - self.startTime
-        #print(deltaT)
-        minuteInMs = 60000 #1000 seconds to a ms, 60 seconds to a minute
-        fit = minuteInMs / deltaT
-        leftover = minuteInMs % deltaT
-        self.wpm = fit
-        #print(self.wpm)
-        self.wpmAverage.append(self.wpm)
-        if(len(self.wpmAverage) > self.averaging - 1):
-            self.wpmAverage.pop(0)
+    def getWPMAveraged(self) -> int:
+        avg = sum(self.wpmAverage) / len(self.wpmAverage)
+        return int(avg)
 
     def getWPM(self) -> int:
-        avg = sum(self.wpmAverage) / len(self.wpmAverage)
-        return avg
-    
+        return self.wpm
+
     def checkTimeout(self):
         ct = ticks_ms()
-        if ct - self.spaceTime > self.timeOut:
-            self.spaceTime = ct
-            self.wpmAverage.clear()
-            print("averaged cleared")
-        return
+        if ct - self.checkTime > self.timeOut:
+            wordPerSecond = float(self.wordCounter) / (float(self.timeOut) / 1000.0)
+            self.wpm = wordPerSecond * 60.0
+            self.wpmAverage.append(self.wpm)
+            if(len(self.wpmAverage) > self.averaging - 1):
+                self.wpmAverage.pop(0)
+            self.wordCounter = 0
+            self.checkTime = ct
+            self.ui.updateWPM(self.getWPMAveraged(),self.getWPM())
