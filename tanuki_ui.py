@@ -12,6 +12,7 @@ class TanukiUI:
     isSpaceLocked = False
     lstrings = ["BASE","SMBL","NBRS","BASE"] 
     layerIndex = 0
+    lastActivity = 0
 
     cardLogo = displayio.Group(y=30) #this is the Y clearance from the lock state indicators
     cardWPM = displayio.Group(y=36)
@@ -74,7 +75,6 @@ class TanukiUI:
             self.LabelSL.background_color=0x000000
         
         self.LabelLayer.text = self.lstrings[self.layerIndex]
-            #print(len(self.wholeScreen))
 
     def updateWPM(self,wpm,wpmNow):
         self.LabelWPM.text = "{0:0>3}".format(wpm)
@@ -87,10 +87,17 @@ class TanukiUI:
             self.cardLogo.hidden = False
 
         elif index == 1:
-            #self.clearAndAddUI()
             print("one")
             self.cardWPM.hidden = False
             self.cardLogo.hidden = True
         elif index == 2:
             print("two")
-            #self.updateUI(self)
+
+    def updateActivity(self):
+        self.lastActivity = ticks_ms()
+        self.wholeScreen.hidden = False
+
+    def checkTimeout(self): #Turn the OLED off after 1 minute to prevent burn-in
+        ct = ticks_ms()
+        if ct - self.lastActivity > 60000 or ct - self.lastActivity < 0:
+            self.wholeScreen.hidden = True

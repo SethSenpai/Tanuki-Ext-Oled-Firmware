@@ -39,11 +39,7 @@ class WPM(Module):
             self.wordCounter = self.wordCounter + 1
             self.lastCharacter = character
             self.spaceTime = ticks_ms()
-            #self.calculateWPM()
             self.startTime = 0
-            #print(self.wordCounter)
-            #avg = self.getWPM()
-            #print(avg)
         else:
             self.lastCharacter = character
             ct = ticks_ms()
@@ -60,7 +56,7 @@ class WPM(Module):
 
     def checkTimeout(self):
         ct = ticks_ms()
-        if ct - self.checkTime > self.timeOut:
+        if ct - self.checkTime > self.timeOut or ct - self.checkTime < 0: #make sure we deal with the posibility of an overflow
             wordPerSecond = float(self.wordCounter) / (float(self.timeOut) / 1000.0)
             self.wpm = wordPerSecond * 60.0
             self.wpmAverage.append(self.wpm)

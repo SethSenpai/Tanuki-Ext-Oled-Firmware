@@ -17,10 +17,12 @@ class KeyTracker(KMKKeyboard): #hijack the keyboards process key function to all
         super().process_key(key,is_pressed,int_coord) #needed otherwise the keystrokes don't propagate to the HID layer
         if(is_pressed):
             moduleWPM.nextKey(key.code)
+            ui.updateActivity()
     
     def before_matrix_scan(self): #this should all be covered by creating an extension but I can't seem to be able to get it to execute the predefined functions
         super().before_matrix_scan()
         moduleWPM.checkTimeout()
+        ui.checkTimeout()
 
 
 keyboard = KeyTracker()
@@ -30,8 +32,6 @@ keyboard.row_pins = (board.GP22,board.GP17,board.GP12,board.GP8)
 keyboard.diode_orientation = DiodeOrientation.COL2ROW
 
 cardIndex = 1
-
-
 
 #Class extensions
 class LayersObj(_Layers): #deals with interactions based on layer switching
@@ -57,6 +57,7 @@ keyboard.modules.append(LayersObj())
 
 #initialize UI for OLED
 ui = TanukiUI(board.GP1,board.GP0)
+ui.changeCard(cardIndex)
 ui.updateUI(locks)
 moduleWPM = WPM(ui,2.5,5)
 
