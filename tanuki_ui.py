@@ -17,13 +17,15 @@ class TanukiUI:
     cardLogo = displayio.Group(y=30) #this is the Y clearance from the lock state indicators
     cardWPM = displayio.Group(y=36)
     wholeScreen = displayio.Group()
+    cardStats = displayio.Group(y=30)
+
     #updatable elements
     LabelCL = label.Label(terminalio.FONT, text = "CL", color = 0x000000, x = 2, y = 6,background_color=0xffffff, padding_left = 2, padding_right=1)
     LabelSL = label.Label(terminalio.FONT, text="SL", color = 0x000000, x = 19, y = 6, background_color=0xffffff, padding_left = 2, padding_right=1)
     LabelLayer = label.Label(terminalio.FONT, text="BOOT", color = 0x000000, x = 5 , y = 20, background_color=0xffffff, padding_left = 16, padding_right=16)
     LabelWPM = label.Label(terminalio.FONT, text="000", color = 0xFFFFFF,x=7,y=16+64)
-
     SparklineWPM = Sparkline(width=32, height=48, max_items=8, y_min=0, dyn_xpitch=True, y_max=200)
+    LabelStats = label.Label(terminalio.FONT, text="", color = 0xFFFFFF, y = 5)
 
     def __init__(self,SCL,SDA):
         #initialize hardware display
@@ -44,6 +46,9 @@ class TanukiUI:
         self.cardWPM.append(self.LabelWPM)
         self.cardWPM.append(self.SparklineWPM)
 
+        #card for stats
+        self.cardStats.append(self.LabelStats)
+
         #lock and layer status initialisation
         lockAndLayer = displayio.Group()
         hr = Rect(0,28,32,1, outline=0xffffff)
@@ -56,6 +61,7 @@ class TanukiUI:
         self.wholeScreen.append(lockAndLayer)
         self.wholeScreen.append(self.cardLogo)
         self.wholeScreen.append(self.cardWPM)
+        self.wholeScreen.append(self.cardStats)
         display.show(self.wholeScreen)
 
         self.changeCard(0)
@@ -80,18 +86,26 @@ class TanukiUI:
         self.LabelWPM.text = "{0:0>3}".format(wpm)
         self.SparklineWPM.add_value(wpmNow)
 
+    def updateStats(self,string):
+        #print(string)
+        self.LabelStats.text = string
+
     def changeCard(self,index):
         if index == 0:
             print("zero")
             self.cardWPM.hidden = True
             self.cardLogo.hidden = False
-
+            self.cardStats.hidden = True
         elif index == 1:
             print("one")
             self.cardWPM.hidden = False
             self.cardLogo.hidden = True
+            self.cardStats.hidden = True
         elif index == 2:
             print("two")
+            self.cardStats.hidden = False
+            self.cardWPM.hidden = True
+            self.cardLogo.hidden = True
 
     def updateActivity(self):
         self.lastActivity = ticks_ms()

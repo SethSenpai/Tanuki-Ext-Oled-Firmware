@@ -1,8 +1,6 @@
 from supervisor import ticks_ms
-from kmk.kmk_keyboard import KMKKeyboard
-from kmk.modules import Module
 
-class WPM(Module):
+class WPM():
     def __init__(self, ui, timeout = 10, averages = 10):
         self.wordCounter = 0
         self.lastCharacter = 0
@@ -57,6 +55,7 @@ class WPM(Module):
     def checkTimeout(self):
         ct = ticks_ms()
         if ct - self.checkTime > self.timeOut or ct - self.checkTime < 0: #make sure we deal with the posibility of an overflow
+            self.checkTime = ct
             wordPerSecond = float(self.wordCounter) / (float(self.timeOut) / 1000.0)
             self.wpm = wordPerSecond * 60.0
             self.wpmAverage.append(self.wpm)

@@ -11,6 +11,7 @@ from kmk.modules.combos import Combos, Chord
 
 from tanuki_ui import TanukiUI
 from wmp import WPM
+from devicestats import Devicestats
 
 class KeyTracker(KMKKeyboard): #hijack the keyboards process key function to allow our wpm module to keep track of pressed keys
     def process_key(self, key, is_pressed, int_coord):
@@ -23,6 +24,7 @@ class KeyTracker(KMKKeyboard): #hijack the keyboards process key function to all
         super().before_matrix_scan()
         moduleWPM.checkTimeout()
         ui.checkTimeout()
+        moduleStats.checkTimeout()
 
 
 keyboard = KeyTracker()
@@ -60,6 +62,7 @@ ui = TanukiUI(board.GP1,board.GP0)
 ui.changeCard(cardIndex)
 ui.updateUI(locks)
 moduleWPM = WPM(ui,2.5,5)
+moduleStats = Devicestats(ui,tempavgsamples=20)
 
 #custom keys for tap or holding spacebars
 KEY_LOWER   = KC.LT(2,KC.SPC, prefer_hold=False, tap_interrupted=False, tap_time=120)
@@ -123,7 +126,7 @@ keyboard.keymap = [
     ],
     [   #numbers and functions
         KC.F1,      KC.F2,  KC.F3,  KC.F4,  KC.F5,  KC.F6,  KC.F7,  KC.F8,  KC.F9,  KC.F10, KC.F11, KC.F12,
-        KC.TRNS,    KC.P1,  KC.P2,  KC.P3,  KC.P4,  KC.P5,  KC.P6,  KC.P7,  KC.P8,  KC.P9,  KC.P0,  KC.TRNS,
+        KC.TRNS,    KC.N1,  KC.N2,  KC.N3,  KC.N4,  KC.N5,  KC.N6,  KC.N7,  KC.N8,  KC.N9,  KC.N0,  KC.TRNS,
         KC.CAPS,    KC.TRNS,KC.TRNS,KC.TRNS,KC.TRNS,KC.TRNS,KC.TRNS,KC.TRNS,KC.TRNS,KC.TRNS,KC.PGUP,KC.TRNS,
         KC.PSCR,    KC.TRNS,KC.TRNS,KC.NO,  KC.TRNS,KC.NO, KC.TRNS, KC.TRNS,KC.TRNS,KC.HOME,KC.PGDN,KC.END
     ],
