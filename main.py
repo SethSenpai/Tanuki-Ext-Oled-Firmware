@@ -13,7 +13,12 @@ from tanuki_ui import TanukiUI
 from wmp import WPM
 from devicestats import Devicestats
 
+from supervisor import ticks_ms
+
+timingsList = []
+ 
 class KeyTracker(KMKKeyboard): #hijack the keyboards process key function to allow our wpm module to keep track of pressed keys
+    
     def process_key(self, key, is_pressed, int_coord):
         super().process_key(key,is_pressed,int_coord) #needed otherwise the keystrokes don't propagate to the HID layer
         if(is_pressed):
@@ -21,10 +26,23 @@ class KeyTracker(KMKKeyboard): #hijack the keyboards process key function to all
             ui.updateActivity()
     
     def before_matrix_scan(self): #this should all be covered by creating an extension but I can't seem to be able to get it to execute the predefined functions
+        global IntervalOld
+        IntervalOld = ticks_ms()
         super().before_matrix_scan()
         moduleWPM.checkTimeout()
         ui.checkTimeout()
         moduleStats.checkTimeout()
+
+    def after_hid_send(self):
+        super().after_hid_send()
+        global IntervalOld
+        global timingsList
+
+        timingsList.append(ticks_ms() - IntervalOld)
+        if len(timingsList) > 500:
+            timingsList.pop(0)
+        print(sum(timingsList)/len(timingsList))
+        #IntervalOld = ticks_ms()
 
 
 keyboard = KeyTracker()

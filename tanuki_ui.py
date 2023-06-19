@@ -18,6 +18,7 @@ class TanukiUI:
     cardWPM = displayio.Group(y=36)
     wholeScreen = displayio.Group()
     cardStats = displayio.Group(y=30)
+    display = None
 
     #updatable elements
     LabelCL = label.Label(terminalio.FONT, text = "CL", color = 0x000000, x = 2, y = 6,background_color=0xffffff, padding_left = 2, padding_right=1)
@@ -32,8 +33,10 @@ class TanukiUI:
         displayio.release_displays() #needed because the otherwise its claimed for debugging
         i2c = busio.I2C(SCL,SDA)
         display_bus = displayio.I2CDisplay(i2c,device_address=0x3c)
-        display = adafruit_displayio_ssd1306.SSD1306(display_bus, width=32,height=128, rotation=90) #this configuration only works when pulling from the latest adafruit master
-        display.brightness = 0.2 #set brightness lower to extend lifetime of the OLED
+        self.display = adafruit_displayio_ssd1306.SSD1306(display_bus, width=32,height=128, rotation=90) #this configuration only works when pulling from the latest adafruit master
+        self.display.brightness = 0.2 #set brightness lower to extend lifetime of the OLED
+        self.display.auto_refresh = False
+        #display.refresh(minimum_frames_per_second=2, target_frames_per_second=2)
 
         #logo card initialization
         sprite = displayio.OnDiskBitmap("/tanukilogo.bmp")
@@ -62,9 +65,9 @@ class TanukiUI:
         self.wholeScreen.append(self.cardLogo)
         self.wholeScreen.append(self.cardWPM)
         self.wholeScreen.append(self.cardStats)
-        display.show(self.wholeScreen)
-
+        self.display.show(self.wholeScreen)
         self.changeCard(0)
+        self.display.refresh()
 
     def updateUI(self,locks):
         if locks.get_caps_lock(): #capslock block
@@ -81,14 +84,18 @@ class TanukiUI:
             self.LabelSL.background_color=0x000000
         
         self.LabelLayer.text = self.lstrings[self.layerIndex]
+        self.display.refresh()
 
     def updateWPM(self,wpm,wpmNow):
-        self.LabelWPM.text = "{0:0>3}".format(wpm)
-        self.SparklineWPM.add_value(wpmNow)
+        if self.cardWPM.hidden is False:
+            self.LabelWPM.text = "{0:0>3}".format(wpm)
+            self.SparklineWPM.add_value(wpmNow)
+            self.display.refresh()
 
     def updateStats(self,string):
-        #print(string)
-        self.LabelStats.text = string
+        if self.cardStats.hidden is False:
+            self.LabelStats.text = string
+            self.display.refresh()
 
     def changeCard(self,index):
         if index == 0:
@@ -106,6 +113,7 @@ class TanukiUI:
             self.cardStats.hidden = False
             self.cardWPM.hidden = True
             self.cardLogo.hidden = True
+        self.display.refresh()
 
     def updateActivity(self):
         self.lastActivity = ticks_ms()
@@ -114,4 +122,6 @@ class TanukiUI:
     def checkTimeout(self): #Turn the OLED off after 1 minute to prevent burn-in
         ct = ticks_ms()
         if ct - self.lastActivity > 60000 or ct - self.lastActivity < 0:
-            self.wholeScreen.hidden = True
+            if self.wholeScreen.hidden is False:
+                self.wholeScreen.hidden = True
+                self.display.refresh()
