@@ -23,25 +23,27 @@ class KeyTracker(KMKKeyboard): #hijack the keyboards process key function to all
         super().process_key(key,is_pressed,int_coord) #needed otherwise the keystrokes don't propagate to the HID layer
         if(is_pressed):
             moduleWPM.nextKey(key.code)
+            ui.checkEmoteLayer(key.code)
             ui.updateActivity()
     
     def before_matrix_scan(self): #this should all be covered by creating an extension but I can't seem to be able to get it to execute the predefined functions
-        global IntervalOld
-        IntervalOld = ticks_ms()
+        #global IntervalOld
+        #IntervalOld = ticks_ms()
         super().before_matrix_scan()
         moduleWPM.checkTimeout()
         ui.checkTimeout()
+        ui.checkEmoteTimeout()
         moduleStats.checkTimeout()
 
     def after_hid_send(self):
         super().after_hid_send()
-        global IntervalOld
-        global timingsList
+        # global IntervalOld
+        # global timingsList
 
-        timingsList.append(ticks_ms() - IntervalOld)
-        if len(timingsList) > 500:
-            timingsList.pop(0)
-        print(sum(timingsList)/len(timingsList))
+        # timingsList.append(ticks_ms() - IntervalOld)
+        # if len(timingsList) > 250:
+        #     timingsList.pop(0)
+        # print(sum(timingsList)/len(timingsList))
         #IntervalOld = ticks_ms()
 
 

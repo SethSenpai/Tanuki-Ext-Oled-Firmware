@@ -13,8 +13,10 @@ class TanukiUI:
     lstrings = ["BASE","SMBL","NBRS","BASE"] 
     layerIndex = 0
     lastActivity = 0
+    emoteTimer = 0
+    lastScancode = 0
 
-    cardLogo = displayio.Group(y=30) #this is the Y clearance from the lock state indicators
+    cardLogo = displayio.Group(y=30-16) #this is the Y clearance from the lock state indicators
     cardWPM = displayio.Group(y=36)
     wholeScreen = displayio.Group()
     cardStats = displayio.Group(y=30)
@@ -27,6 +29,10 @@ class TanukiUI:
     LabelWPM = label.Label(terminalio.FONT, text="000", color = 0xFFFFFF,x=7,y=16+64)
     SparklineWPM = Sparkline(width=32, height=48, max_items=8, y_min=0, dyn_xpitch=True, y_max=200)
     LabelStats = label.Label(terminalio.FONT, text="", color = 0xFFFFFF, y = 5)
+    SpriteNormal = None
+    SpriteExcite = None
+    SpriteQuestion = None
+
 
     def __init__(self,SCL,SDA):
         #initialize hardware display
@@ -39,9 +45,18 @@ class TanukiUI:
         #display.refresh(minimum_frames_per_second=2, target_frames_per_second=2)
 
         #logo card initialization
-        sprite = displayio.OnDiskBitmap("/tanukilogo.bmp")
-        tsprite = displayio.TileGrid(sprite,pixel_shader=sprite.pixel_shader,x=0,y=28) #place the logo in the center of the leftover screen space
-        self.cardLogo.append(tsprite)   
+        normal = displayio.OnDiskBitmap("/tanukilogo.bmp")
+        self.SpriteNormal = displayio.TileGrid(normal,pixel_shader=normal.pixel_shader,x=0,y=28) #place the logo in the center of the leftover screen space
+        excite = displayio.OnDiskBitmap("/tanukilogo_excite.bmp")
+        self.SpriteExcite = displayio.TileGrid(excite,pixel_shader=excite.pixel_shader,x=0,y=28)
+        question = displayio.OnDiskBitmap("tanukilogo_question.bmp")
+        self.SpriteQuestion = displayio.TileGrid(question,pixel_shader=question.pixel_shader,x=0,y=28)
+        
+        self.cardLogo.append(self.SpriteNormal)
+        self.cardLogo.append(self.SpriteExcite)
+        self.SpriteExcite.hidden = True
+        self.cardLogo.append(self.SpriteQuestion)
+        self.SpriteQuestion.hidden = True
         
         #word per minute counter
         labelIndicator = label.Label(terminalio.FONT, text="WPM: ", color = 0xFFFFFF,x=5, y=64)
@@ -99,17 +114,14 @@ class TanukiUI:
 
     def changeCard(self,index):
         if index == 0:
-            print("zero")
             self.cardWPM.hidden = True
             self.cardLogo.hidden = False
             self.cardStats.hidden = True
         elif index == 1:
-            print("one")
             self.cardWPM.hidden = False
             self.cardLogo.hidden = True
             self.cardStats.hidden = True
         elif index == 2:
-            print("two")
             self.cardStats.hidden = False
             self.cardWPM.hidden = True
             self.cardLogo.hidden = True
@@ -118,6 +130,8 @@ class TanukiUI:
     def updateActivity(self):
         self.lastActivity = ticks_ms()
         self.wholeScreen.hidden = False
+        if self.wholeScreen.hidden == True:
+            self.display.refresh()
 
     def checkTimeout(self): #Turn the OLED off after 1 minute to prevent burn-in
         ct = ticks_ms()
@@ -125,3 +139,31 @@ class TanukiUI:
             if self.wholeScreen.hidden is False:
                 self.wholeScreen.hidden = True
                 self.display.refresh()
+
+    def checkEmoteTimeout(self):
+        if self.cardLogo.hidden == True:
+            return
+        ct = ticks_ms()
+        if ct - self.emoteTimer > 2500 or ct - self.emoteTimer < 0:
+            self.emoteTimer = ct
+            self.SpriteNormal.hidden = False
+            self.SpriteQuestion.hidden = True
+            self.SpriteExcite.hidden = True
+            #self.display.refresh()
+
+
+    def checkEmoteLayer(self,scancode):
+        if self.cardLogo.hidden == True:
+            return
+        if scancode == 0x1e: #! pressed
+            self.emoteTimer = ticks_ms()
+            #self.SpriteNormal.hidden = True
+            #self.SpriteQuestion.hidden = True
+            #self.SpriteExcite.hidden = False
+            #self.display.refresh()
+        if scancode == 0x38: #? pressed
+            self.emoteTimer = ticks_ms()
+            #self.SpriteNormal.hidden = True
+            #self.SpriteQuestion.hidden = False
+            #self.SpriteExcite.hidden = True
+            #self.display.refresh()
